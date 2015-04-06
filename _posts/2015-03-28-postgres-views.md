@@ -2,7 +2,9 @@
 layout:     post
 title:      Views in PostgreSQL
 date:       2015-03-28 20:00:00
-summary:    Exploring views in the latest versions of PostgreSQL.
+summary:    Exploring views in the latest versions of PostgreSQL. How do we use
+            a view and what are they good for? What is a materialized view and
+            when should I use it?
 categories: postgres
 ---
 

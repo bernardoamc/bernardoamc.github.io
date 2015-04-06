@@ -2,7 +2,10 @@
 layout:     post
 title:      Inherited Tables in PostgreSQL
 date:       2015-04-02 20:00:00
-summary:    Investigating inherited tables feature from PostgreSQL
+summary:    Investigating inherited tables feature from PostgreSQL. Is
+            inheritance useful in a relational database? If so, when should
+            I use it? How they work and what should I keep an eye on during
+            the implementation? Let's find out!
 categories: postgres
 ---
 

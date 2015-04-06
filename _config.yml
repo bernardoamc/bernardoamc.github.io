@@ -2,9 +2,9 @@
 title:       bernardoamc
 email:       bernardo.amc@gmail.com
 author:      Bernardo Chaves
-description: "To learn and share new things."
+description: 'To learn and share new things.'
 baseurl:     ""
-url:         ""
+url:         'http://bernardoamc.github.io'
 
 # Google analytics
 google_analytics: 'UA-61557509-1'

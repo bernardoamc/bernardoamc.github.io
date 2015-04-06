@@ -1,8 +1,10 @@
 <header class="site-header px2 px-responsive">
   <div class="wrap">
-    <div class="measure">
+    <div class="measure center">
       <a href="{{ site.url }}" class="site-title">{{ site.title }}</a>
-      <small class="right">{{ site.description }}</small>
+      <div class="site-description">
+        <small>{{ site.description }}</small>
+      </div>
 
       <div class="clearfix"></div>
       {% if site.show_social_icons %}

@@ -1,3 +1,9 @@
-.icon {
-  padding-right: 1%;
+.site-description {
+  float: right;
+}
+
+@media (max-width: 767px) {
+  .site-description {
+    float: none;
+  }
 }

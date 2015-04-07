@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      Views in PostgreSQL
+title:      Views in Postgres
 date:       2015-03-28 20:00:00
 summary:    Exploring views in the latest versions of PostgreSQL. How do we use
             a view and what are they good for? What is a materialized view and

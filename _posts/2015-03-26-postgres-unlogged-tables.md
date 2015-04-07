@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      Unlogged Tables in PostgreSQL
+title:      Unlogged Tables in Postgres
 date:       2015-03-26 20:00:00
 summary:    In this post we will see a quick review of unlogged tables in PostgreSQL,
             a feature that doesn't have many use cases, but is really useful

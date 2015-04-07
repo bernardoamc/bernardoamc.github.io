@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      Inherited Tables in PostgreSQL
+title:      Inherited Tables in Postgres
 date:       2015-04-02 20:00:00
 summary:    Investigating inherited tables feature from PostgreSQL. Is
             inheritance useful in a relational database? If so, when should

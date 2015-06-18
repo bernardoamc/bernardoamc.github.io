@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      Lateral joins in Postgres
-date:       2015-06-17 15:00:00
+date:       2015-06-23 23:00:00
 summary:    In this post we will work in a common problem and explore how to solve
             it using this not so new feature called LATERAL join.
 categories: sql
@@ -13,16 +13,26 @@ and that I never had the chance do explore. It was added in version
 hype, since the `JSON` type was also introduced in this release, plus `MATERIALIZED VIEWS`
 and some other cool features (what a great release!).
 
+Also, it's valid to point out that this feature is not unique to postgres, SQL
+Server has the exactly same feature named `CROSS APPLY` for example.
+
 #### So, what is a `LATERAL join`?
 
 As always we can refer to the
 [documentation](http://www.postgresql.org/docs/devel/static/sql-select.html) for
 help, but to put it simply what it does is:
 
->"For each row in the FROM item, the JOIN is evaluated in the context of that
-row and the resulting rows are joined as usual."
+>"The subquery specified on the RIGHT SIDE of the JOIN is evaluated for each row
+on the LEFT side of the JOIN."
 
-Don't worry if this wasn't clear enough, we will see an example with this is
+This also means that the subquery can access fields from records on the left
+side of the join, which normally would be impossible.
+
+The format is something like:
+
+*SELECT * FROM something [INNER|LEFT] JOIN LATERAL (subquery);*
+
+Don't worry if this wasn't clear enough, we will see an example with this in
 action and things will make sense.
 
 #### The feature request
@@ -39,12 +49,23 @@ Investigating the database we see an structure like the following:
 {% highlight sql %}
 \dt
 
-           List of relations
- Schema |    Name    | Type  |  Owner
---------+------------+-------+----------
- public | games      | table | xxxxxxxx
- public | sold_games | table | xxxxxxxx
+     List of relations
+ Schema |    Name    | Type
+--------+------------+-------
+ public | games      | table
+ public | sold_games | table
 (2 rows)
+
+-- List of indexes
+\di
+
+                List of relations
+ Schema |          Name          | Type  |   Table
+--------+------------------------+-------+------------
+ public | games_pkey             | index | games
+ public | sold_games_game_id_idx | index | sold_games
+ public | sold_games_pkey        | index | sold_games
+(3 rows)
 {% endhighlight %}
 
 With the current data:
@@ -78,8 +99,8 @@ SELECT game_id, price, sold_on FROM sold_games;
 
 #### Solution without `LATERAL`
 
-Let's create a solution without `LATERAL joins` first so we can see the
-benefits of using `LATERAL` over this implementation.
+Let's create a solution without `LATERAL` first so we can see the
+benefits of using `LATERAL` over this implementation later.
 
 Having decided this, let's fetch the last two sells of each game without
 bothering with the game name for now:
@@ -164,7 +185,9 @@ Running the current implementation with `EXPLAIN ANALYZE` we obtain:
 #### Solution with `LATERAL`
 
 We can count this as a win if we improve our legibility without losing
-performance our if we can improve both of these aspects:
+performance OR if we can improve both of these aspects.
+
+The final solution is something like:
 
 {% highlight sql %}
 SELECT g.name, ls.price, ls.sold_on
@@ -200,18 +223,58 @@ Definitely easier to read, and running `EXPLAIN ANALYZE` we obtain:
 
 Which is also an improvement, even with this small subset.
 
-So we can see that some queries can be simplified with this technique, but let's
-create a summary with what's really going on:
+#### What is really going on
 
 1. We fetch rows from the games table.
 2. **For each** row we run the subquery.
-3. Join the result with the respective **row**.
+3. And join the result with the respective **row**.
+
+#### Improved benchmark
 
 Let's expand our example a bit and see how our database performs with something
-like 100 games and 10_000 sells.
+like 100 games and 100_000 sells.
 
 {% highlight sql %}
+INSERT INTO games (name) (select generate_series(1,100));
 
+SELECT count(*) FROM games;
+
+ count
+-------
+   100
+(1 row)
+
+INSERT INTO sold_games (game_id, price, sold_on)
+SELECT (1 + random() * 100) AS game_id,
+       price,
+       (current_date + random() * 100 * interval '1 day') as sold_on
+FROM generate_series(1,100000) AS s(price);
+
+SELECT count(*) FROM sold_games;
+
+ count
+--------
+ 100000
+(1 row)
 {% endhighlight %}
+
+Running `EXPLAIN ANALYZE` for the first query we get the time:
+
+{% highlight sql %}
+Planning time: 0.375 ms
+Execution time: 165.094 ms
+{% endhighlight %}
+
+And now with `LATERAL`:
+
+{% highlight sql %}
+Planning time: 0.132 ms
+Execution time: 62.724 ms
+{% endhighlight %}
+
+Huge win!
+
+That's it for now, `LATERAL` was a huge eye opener for me and
+I hope this post had a similar effect for you too!
 
 See you in the next post!

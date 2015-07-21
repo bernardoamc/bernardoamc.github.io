@@ -4,7 +4,7 @@ title:      Review of operators in Postgres
 date:       2015-07-21 14:00:00
 summary:    In this post we will review and learn how to apply some operators in
             Postgres. The datatypes that we will investigate are Array, JSON and JSONB
-            since they are the newer and not so intuitive.
+            since they are newer and not so intuitive.
 categories: sql
 ---
 

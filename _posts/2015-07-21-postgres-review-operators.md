@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      Review of operators in Postgres
-date:       2015-07-23 23:00:00
+date:       2015-07-21 14:00:00
 summary:    In this post we will review and learn how to apply some operators in
             Postgres. The datatypes that we will investigate are Array, JSON and JSONB
             since they are the newer and not so intuitive.
@@ -9,14 +9,13 @@ categories: sql
 ---
 
 Let's investigate some operators in Postgres and how to use them
-in our day-to-day work. The objective is to have a centralized guide
-to refer to when in need.
+in our day-to-day work. The objective is to have a centralized guide.
 
 ### Array
 
-+ `@>` and `<@` are operators that check if an Array is contained in another.
++ `@>` and `<@` are operators that checks if an Array is contained by another.
 The first one checks if the first Array **contains** the second. The latter
-checks if the first Array is **contained** by the second.
+checks if the first Array is **contained by** the second.
 
 {% highlight sql %}
 SELECT array[1,3,6] @> array[1,4,7];

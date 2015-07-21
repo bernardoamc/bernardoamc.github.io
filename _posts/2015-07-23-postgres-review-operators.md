@@ -2,8 +2,9 @@
 layout:     post
 title:      Review of operators in Postgres
 date:       2015-07-23 23:00:00
-summary:    In this post we will review some operators so we can have
-            a place to reference in future posts.
+summary:    In this post we will review and learn how to apply some operators in
+            Postgres. The datatypes that we will investigate are Array, JSON and JSONB
+            since they are the newer and not so intuitive.
 categories: sql
 ---
 
@@ -13,7 +14,9 @@ to refer to when in need.
 
 ### Array
 
-+ `@>` is the operator that specifies if an Array **contains** another Array.
++ `@>` and `<@` are operators that check if an Array is contained in another.
+The first one checks if the first Array **contains** the second. The latter
+checks if the first Array is **contained** by the second.
 
 {% highlight sql %}
 SELECT array[1,3,6] @> array[1,4,7];
@@ -29,11 +32,7 @@ SELECT array[1,3,6] @> array[1,3];
 ----------
  t
 (1 row)
-{% endhighlight %}
 
-+ `<@` on the other hand specifies if an Array **is contained by** another one.
-
-{% highlight sql %}
 SELECT array[1,3] <@ array[4,5,6];
 
  ?column?
@@ -59,7 +58,7 @@ SELECT array[3,6] && array[1,4,7];
  f
 (1 row)
 
-SELECT array[3,6] && array[1,3,6];
+SELECT array[2,3,6] && array[1,3,6];
 
  ?column?
 ----------
@@ -180,7 +179,7 @@ SELECT pg_typeof(
 TEXT respectively. Both return `NULL` if the path cannot be found.
 
 {% highlight sql %}
-SELECT '{"state": {"name": "abc"} }'::json#>ARRAY['country', 'name'];
+SELECT '{"state": {"name": "abc"} }'::json#>ARRAY['state', 'name'];
 
 ?column?
 ----------
@@ -188,7 +187,7 @@ SELECT '{"state": {"name": "abc"} }'::json#>ARRAY['country', 'name'];
 (1 row)
 
 SELECT pg_typeof(
-  '{"state": {"name": "abc"} }'::json#>ARRAY['country','name']
+  '{"state": {"name": "abc"} }'::json#>ARRAY['state','name']
 );
 
  pg_typeof
@@ -196,7 +195,7 @@ SELECT pg_typeof(
  json
 (1 row)
 
-SELECT '{"state": {"name": "abc"} }'::json#>>ARRAY['country', 'name'];
+SELECT '{"state": {"name": "abc"} }'::json#>>ARRAY['state', 'name'];
 
 ?column?
 ----------
@@ -204,7 +203,7 @@ SELECT '{"state": {"name": "abc"} }'::json#>>ARRAY['country', 'name'];
 (1 row)
 
 SELECT pg_typeof(
-  '{"state": {"name": "abc"} }'::json#>ARRAY['country','name']
+  '{"state": {"name": "abc"} }'::json#>ARRAY['state','name']
 );
 
  pg_typeof

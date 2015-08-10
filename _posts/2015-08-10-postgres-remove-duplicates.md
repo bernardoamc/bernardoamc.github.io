@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      Removing duplicates in Postgres
-date:       2015-08-11 23:00:00
+date:       2015-08-10 13:00:00
 summary:    This is a study to find ways in which we can remove duplicate rows
             based on a certain criteria from our tables.
 categories: sql
@@ -42,10 +42,25 @@ SELECT * FROM orders;
 {% endhighlight %}
 
 We want to remove rows that have the same `item_id` and `code`, what are our
-options? Actually, a lot! (If your table doesn't  have a unique identifier it's
-useful to read [this](#ctid) section first.)
+options? Actually, a lot!
 
-### <a name="group_by"></a>GROUP BY
+*If your table have an unique identifier like an `id` you can skip the next
+section.*
+
+### Tables without an unique identifier
+
+If your table don't have an unique identifier you can replace the `id` column by
+the `ctid` column in the examples below.
+
+`ctid` is a [system column](http://www.postgresql.org/docs/9.4/static/ddl-system-columns.html)
+representing the physical location of the row in our table. This
+identifier is guaranteed to be unique, but changes over time if our rows are
+updated, so it is only useful for these kind of operations where you won't need
+to use its values later.
+
+With this covered, let's start our study:
+
+### GROUP BY
 Let's start simple and avoid "fancy" things like `joins` and `window functions`.
 
 {% highlight sql %}
@@ -64,7 +79,7 @@ in this set.
 
 We could achieve the same result with `DISTINCT ON`, let's see an example.
 
-### <a name="distinct_on"></a>DISTINCT ON
+### DISTINCT ON
 
 {% highlight sql %}
 DELETE
@@ -81,7 +96,7 @@ order by `id`. If this is not the case we should explicitly order our result as
 mentioned [in the
 documentation](http://www.postgresql.org/docs/9.0/static/sql-select.html#SQL-DISTINCT).
 
-### <a name="exists"></a>EXISTS
+### EXISTS
 
 {% highlight sql %}
 DELETE
@@ -99,7 +114,7 @@ This reads as: "Delete every row from o1 that has the same item_id and code and
 an id bigger than at least one id from o2". This will ensure that only the
 duplicates with the lowest id remains.
 
-### <a name="using"></a>USING
+### USING
 
 {% highlight sql %}
 DELETE
@@ -114,7 +129,7 @@ technique explained above to keep the lowest id from our duplicated records.
 We can see another `USING` example
 [here](http://www.postgresql.org/docs/9.4/static/sql-delete.html#AEN78458).
 
-### <a name="partition"></a>PARTITION (WINDOW FUNCTION)
+### PARTITION (WINDOW FUNCTION)
 
 {% highlight sql %}
 DELETE
@@ -130,12 +145,12 @@ WHERE id IN (
 );
 {% endhighlight %}
 
-Here we partition our records using the specified criteria to find duplicates
-and sort this partition by `id`, after this we create a column with the row
+Here the rows were partitioned by the specified criteria to find duplicates
+and sorted by `id`, after this we create a column with the row
 number for each row in a partition. The last step is to select only the rows
 with row numbers greater than 1 to delete.
 
-### <a name="temporary"></a>Temporary tables
+### Temporary tables
 
 {% highlight sql %}
 CREATE TABLE temporary_orders AS
@@ -152,17 +167,7 @@ possibility that we should take into account.
 We can also use a `CREATE TEMPORARY TABLE` if our table should be dropped at the
 end of the session.
 
-### <a name="ctid"></a>But my rows don't have a unique identifier!
-
-In this case you can rename the `id` to `ctid` in our queries.
-
-`ctid` is a [system column](http://www.postgresql.org/docs/9.4/static/ddl-system-columns.html)
-representing the physical location of the row in our table. This
-identifier is guaranteed to be unique, but changes over time if our rows are
-updated, so it is only useful for these kind of operations where you won't need
-to use its values later.
-
-That's it for now, if you know other solutions that or have further questions
+That's it for now, if you know more solutions or have further questions
 feel free to leave me a tweet or email so we can discuss things further!
 
 See you in the next post!

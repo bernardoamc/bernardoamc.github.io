@@ -27,7 +27,7 @@ things to keep an eye on when using this feature.
 
 ### Example
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE statistics(
   id serial PRIMARY KEY,
   name varchar,
@@ -44,7 +44,7 @@ CREATE TABLE statistics_2015 (
 
 CREATE INDEX idx_statistics_2015_created_at
   ON statistics USING btree(created_at);
-{% endhighlight %}
+~~~
 
 As we can see we create a table named *statistics* and a child table named
 *statistics_2015* with a *CHECK CONSTRAINT*. This constraint is necessary so the
@@ -74,7 +74,7 @@ First we need to create a function that will be called by the trigger. This
 function will dinamically check in which year we are and will call the proper
 child table:
 
-{% highlight sql %}
+~~~ sql
 CREATE OR REPLACE FUNCTION statistics_insert_trigger()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -88,15 +88,15 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-{% endhighlight %}
+~~~
 
 Now the trigger:
 
-{% highlight sql %}
+~~~ sql
 CREATE TRIGGER insert_statistics_trigger
   BEFORE INSERT ON statistics
   FOR EACH ROW EXECUTE PROCEDURE statistics_insert_trigger();
-{% endhighlight %}
+~~~
 
 ### Advantages
 

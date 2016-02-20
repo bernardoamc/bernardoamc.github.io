@@ -21,14 +21,14 @@ this approach and also some problems.
 We simply create a table with a field that references a row in this same table.
 An example of a table like this would be:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE categories (
   id serial PRIMARY KEY,
   parent_id integer,
   name varchar,
   FOREIGN KEY (parent_id) REFERENCES categories(id)
 );
-{% endhighlight %}
+~~~
 
 We can see that `parent_id` references an id in this same table. The rest
 in straighfoward, to create a category that does not have a parent we leave
@@ -37,7 +37,7 @@ id.
 
 Let's see some examples:
 
-{% highlight sql %}
+~~~ sql
 INSERT into categories (name)
   VALUES ('sports');
 INSERT INTO categories (parent_id, name)
@@ -62,18 +62,18 @@ id | parent_id |    name
   5 |         1 | volleyball
   6 |         5 | U-21
 (6 rows)
-{% endhighlight %}
+~~~
 
 So, as we can see we have something like:
 
-{% highlight sql %}
+~~~ sql
 * sports
   * football
     * U-17
     * U-14
   * volleyball
     * U-21
-{% endhighlight %}
+~~~
 
 Let's see the advantages of this approach.
 
@@ -81,22 +81,22 @@ Let's see the advantages of this approach.
 
 It's pretty easy to **insert** a new row in the hierarchy:
 
-{% highlight sql %}
+~~~ sql
 INSERT INTO categories (parent_id, name)
   VALUES (5, 'U-18');
-{% endhighlight %}
+~~~
 
 It's also easy to **change** the parent of a row (changing its subtree):
 
-{% highlight sql %}
+~~~ sql
 UPDATE categories
 SET parent_id = 1
 WHERE name = 'U-18';
-{% endhighlight %}
+~~~
 
 Querying the **direct parent or descendant** of a category is straightforward:
 
-{% highlight sql %}
+~~~ sql
 SELECT c1.*
 FROM categories c1 INNER JOIN categories c2 ON c2.parent_id = c1.id
 WHERE c2.name = 'football';
@@ -115,7 +115,7 @@ WHERE c2.name = 'football';
   3 |         2 | U-14
   4 |         2 | U-17
 (2 rows)
-{% endhighlight %}
+~~~
 
 But as nothing is perfect, we also have some issues.
 
@@ -126,7 +126,7 @@ suppose we want do delete `football`. To do this and keep the tree consistent,
 we would have to update `U-14` and `U-17` parent_id to `sports`, using our
 queries to get the parent and direct descendants of a row.
 
-{% highlight sql %}
+~~~ sql
 UPDATE categories SET parent_id = (
   SELECT c1.id
   FROM categories c1
@@ -139,20 +139,20 @@ WHERE id IN(
   INNER JOIN categories c2 ON c1.parent_id = c2.id
   WHERE c2.name = 'football'
 );
-{% endhighlight %}
+~~~
 
 And after that we delete our row:
 
-{% highlight sql %}
+~~~ sql
 DELETE from categories where name = 'football';
-{% endhighlight %}
+~~~
 
 It's also not easy to **delete a subtree**. Suppose we want to delete the row that
 contains `football` and all its descendants. We would need to find all
 descendants of `football` and delete them in reverse order to avoid
 constraint errors. So suppose we have the following:
 
-{% highlight sql %}
+~~~ sql
 * sports
   * football
     * U-17
@@ -163,7 +163,7 @@ constraint errors. So suppose we have the following:
       * female
   * volleyball
     * U-21
-{% endhighlight %}
+~~~
 
 To delete `football` subtree we would have to delete first the `male` and `female` from
 both `U-14` and `U-17`. After that we would have to delete `U-14` and `U-17` and finally
@@ -172,7 +172,7 @@ we would delete `football`. But what if we have 5 or 10 levels of nesting?
 To solve this problem we would need to use `recursive` queries in a database
 like PostgreSQL to achieve something like:
 
-{% highlight sql %}
+~~~ sql
 WITH RECURSIVE CategoriesTree (id, parent_id, name) AS (
   SELECT *
   FROM categories
@@ -185,7 +185,7 @@ UNION ALL
 DELETE FROM Categories WHERE id IN(
   SELECT id FROM CategoriesTree
 );
-{% endhighlight %}
+~~~
 
 The query above gets all descendants ids including the row we want to delete
 and pass its ids to DELETE, the database takes care of deleting the rows in
@@ -193,7 +193,7 @@ the right order.
 
 To **query all the descendants** we would also need to use recursive queries.
 
-{% highlight sql %}
+~~~ sql
 WITH RECURSIVE CategoriesTree (id, parent_id, name) AS (
   SELECT *, 0 as depth
   FROM categories
@@ -215,7 +215,7 @@ SELECT * FROM CategoriesTree;
   8 |         3 | female   |     3
   9 |         4 | male     |     3
  10 |         4 | female   |     3
-{% endhighlight %}
+~~~
 
 ### Wrap Up
 

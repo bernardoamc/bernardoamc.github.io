@@ -43,9 +43,8 @@ share_reddit: false
 share_stumbleupon: false
 
 # Build settings
-markdown:     redcarpet
-redcarpet:
-  extensions: ['smart', 'tables', 'with_toc_data']
+gems: [jekyll-paginate]
+markdown:     kramdown
 permalink:    pretty
 paginate:     5
 sass:

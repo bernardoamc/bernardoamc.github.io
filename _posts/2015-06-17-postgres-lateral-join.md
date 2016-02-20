@@ -30,7 +30,7 @@ side of the join, which normally would be impossible.
 
 The format is something like:
 
-*SELECT * FROM something [INNER|LEFT] JOIN LATERAL (subquery);*
+>SELECT * FROM something [INNER/LEFT] JOIN LATERAL (subquery);
 
 Don't worry if this wasn't clear enough, we will see an example with this in
 action and things will make sense.
@@ -46,7 +46,7 @@ row should have the following attributes:*
 
 Investigating the database we see an structure like the following:
 
-{% highlight sql %}
+~~~ sql
 \dt
 
      List of relations
@@ -66,11 +66,11 @@ Investigating the database we see an structure like the following:
  public | sold_games_game_id_idx | index | sold_games
  public | sold_games_pkey        | index | sold_games
 (3 rows)
-{% endhighlight %}
+~~~
 
 With the current data:
 
-{% highlight sql %}
+~~~ sql
 SELECT * FROM games;
 
  game_id |        name
@@ -95,7 +95,7 @@ SELECT game_id, price, sold_on FROM sold_games;
        3 |    40 | 2015-06-30
        4 |    50 | 2015-04-12
 (9 rows)
-{% endhighlight %}
+~~~
 
 #### Solution without `LATERAL`
 
@@ -105,7 +105,7 @@ benefits of using `LATERAL` over this implementation later.
 Having decided this, let's fetch the last two sells of each game without
 bothering with the game name for now:
 
-{% highlight sql %}
+~~~ sql
 SELECT * FROM (
   SELECT row_number() OVER (
           PARTITION BY game_id ORDER BY sold_on DESC
@@ -125,11 +125,11 @@ WHERE s.sell_pos < 3;
         2 |       3 |    55 | 2015-06-20
         1 |       4 |    50 | 2015-04-12
 (7 rows)
-{% endhighlight %}
+~~~
 
 It works, now we can fetch the names using an `INNER JOIN`:
 
-{% highlight sql %}
+~~~ sql
 SELECT g.name, ls.price, ls.sold_on
 FROM (
   SELECT * FROM
@@ -155,13 +155,13 @@ USING(game_id);
  Chroma Squad       |    55 | 2015-06-20
  7 days to die      |    50 | 2015-04-12
 (7 rows)
-{% endhighlight %}
+~~~
 
 And we have our answer!
 
 Running the current implementation with `EXPLAIN ANALYZE` we obtain:
 
-{% highlight sql %}
+~~~ sql
                                 QUERY PLAN
 ---------------------------------------------------------------------------------------------------------------------------------
  Hash Join  (cost=150.94..211.38 rows=543 width=44) (actual time=0.036..0.048 rows=7 loops=1)
@@ -180,7 +180,7 @@ Running the current implementation with `EXPLAIN ANALYZE` we obtain:
  Planning time: 0.166 ms
  Execution time: 0.088 ms
 (15 rows)
-{% endhighlight %}
+~~~
 
 #### Solution with `LATERAL`
 
@@ -189,7 +189,7 @@ performance OR if we can improve both of these aspects.
 
 The final solution is something like:
 
-{% highlight sql %}
+~~~ sql
 SELECT g.name, ls.price, ls.sold_on
 FROM games AS g
 INNER JOIN LATERAL (
@@ -200,11 +200,11 @@ INNER JOIN LATERAL (
   LIMIT 2
 ) AS ls
 ON TRUE;
-{% endhighlight %}
+~~~
 
 Definitely easier to read, and running `EXPLAIN ANALYZE` we obtain:
 
-{% highlight sql %}
+~~~ sql
                                                        QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------
  Nested Loop  (cost=1.12..1433.72 rows=1230 width=44) (actual time=0.024..0.049 rows=7 loops=1)
@@ -219,7 +219,7 @@ Definitely easier to read, and running `EXPLAIN ANALYZE` we obtain:
  Planning time: 0.277 ms
  Execution time: 0.081 ms
 (11 rows)
-{% endhighlight %}
+~~~
 
 Which is also an improvement, even with this small subset.
 
@@ -234,7 +234,7 @@ Which is also an improvement, even with this small subset.
 Let's expand our example a bit and see how our database performs with something
 like 100 games and 100_000 sells.
 
-{% highlight sql %}
+~~~ sql
 INSERT INTO games (name) (select generate_series(1,100));
 
 SELECT count(*) FROM games;
@@ -256,21 +256,21 @@ SELECT count(*) FROM sold_games;
 --------
  100000
 (1 row)
-{% endhighlight %}
+~~~
 
 Running `EXPLAIN ANALYZE` for the first query we get the time:
 
-{% highlight sql %}
+~~~ sql
 Planning time: 0.375 ms
 Execution time: 165.094 ms
-{% endhighlight %}
+~~~
 
 And now with `LATERAL`:
 
-{% highlight sql %}
+~~~ sql
 Planning time: 0.132 ms
 Execution time: 62.724 ms
-{% endhighlight %}
+~~~
 
 Huge win!
 

@@ -17,7 +17,7 @@ in our day-to-day work. The objective is to have a centralized guide.
 The first one checks if the first Array **contains** the second. The latter
 checks if the first Array is **contained by** the second.
 
-{% highlight sql %}
+~~~ sql
 SELECT array[1,3,6] @> array[1,4,7];
 
  ?column?
@@ -45,11 +45,11 @@ SELECT array[4,6] <@ array[4,5,6];
 ----------
  t
 (1 row)
-{% endhighlight %}
+~~~
 
 + `&&` tells if an Array has **elements in common** with another Array.
 
-{% highlight sql %}
+~~~ sql
 SELECT array[3,6] && array[1,4,7];
 
  ?column?
@@ -63,12 +63,12 @@ SELECT array[2,3,6] && array[1,3,6];
 ----------
  t
 (1 row)
-{% endhighlight %}
+~~~
 
 + There is no operator if you need an **intersection**, but we can achieve the
 same result using:
 
-{% highlight sql %}
+~~~ sql
 SELECT array(
   SELECT UNNEST(array[3,6,7,8])
   INTERSECT
@@ -79,7 +79,7 @@ SELECT array(
 -------
  {6,7}
 (1 row)
-{% endhighlight %}
+~~~
 
 We can use **UNION** instead of the **INTERSECT** to join elements from each
 Array without duplicates.
@@ -91,7 +91,7 @@ key/values.
 
 + `->` Returns an array element by index `OR` a value by key as **JSON**.
 
-{% highlight sql %}
+~~~ sql
 SELECT '[{"name": "bernardo"},{"country": "brazil"}]'::json->0;
 
        ?column?
@@ -123,22 +123,22 @@ SELECT pg_typeof(
 -----------
  json
 (1 row)
-{% endhighlight %}
+~~~
 
 Since `->` returns a **JSON** we can chain this operator:
 
-{% highlight sql %}
+~~~ sql
 SELECT '{"country": {"name": "brazil"} }'::json->'country'->'name';
 
 ?column?
 ----------
  "brazil"
 (1 row)
-{% endhighlight %}
+~~~
 
 + `->>` Returns an array element by index `OR` a value by key as **TEXT**.
 
-{% highlight sql %}
+~~~ sql
 SELECT '[{"name": "bernardo"},{"country": "brazil"}]'::json->>0;
 
        ?column?
@@ -170,14 +170,14 @@ SELECT pg_typeof(
 -----------
  text
 (1 row)
-{% endhighlight %}
+~~~
 
 *We cannot chain `->>` since it returns a TEXT.*
 
 + `#>` and `#>>` receives a path as an Array and returns a JSON and
 TEXT respectively. Both return `NULL` if the path cannot be found.
 
-{% highlight sql %}
+~~~ sql
 SELECT '{"state": {"name": "abc"} }'::json#>ARRAY['state', 'name'];
 
 ?column?
@@ -209,7 +209,7 @@ SELECT pg_typeof(
 -----------
  text
 (1 row)
-{% endhighlight %}
+~~~
 
 ### JSONB
 
@@ -219,7 +219,7 @@ SELECT pg_typeof(
 The first checks if the left JSONB contains the one in the right and the latter
 checks the inverse.
 
-{% highlight sql %}
+~~~ sql
 SELECT '{"age": 20, "score": 7}'::jsonb @> '{"score":7}'::jsonb;
 
  ?column?
@@ -247,13 +247,13 @@ SELECT '{"score": 5}'::jsonb <@ '{"age": 20, "score": 7}'::jsonb;
 ----------
  f
 (1 row)
-{% endhighlight %}
+~~~
 
 + `?`  checks if a key exists.
 + `?|` checks if **ANY** of the keys exists.
 + `?&` checks if **ALL** of the keys exists.
 
-{% highlight sql %}
+~~~ sql
 SELECT '{"age": 15, "score":7}'::jsonb ? 'age';
 
  ?column?
@@ -281,7 +281,7 @@ SELECT '{"age": 15, "score":7}'::jsonb ?& ARRAY['age', 'score'];
 ----------
  t
 (1 row)
-{% endhighlight %}
+~~~
 
 That's it for now, if you know other useful operators that were
 not mentioned here or have a question feel free to leave me a tweet

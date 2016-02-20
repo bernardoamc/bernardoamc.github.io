@@ -14,20 +14,20 @@ the latest versions of PostgreSQL and deserve some study to be well used.
 
 The simplest use of a view can be something like:
 
-{% highlight sql %}
+~~~ sql
 CREATE OR REPLACE VIEW logs_2015 AS
 SELECT value, year FROM logs where year = 2015;
-{% endhighlight %}
+~~~
 
 This view uses only a single table, but we can also create views that uses more
 than one table:
 
-{% highlight sql %}
+~~~ sql
 CREATE OR REPLACE VIEW author_books AS
 SELECT a.name, b.name, b.released_at
 FROM authors AS a INNER JOIN books AS b
 ON a.id = b.author_id;
-{% endhighlight %}
+~~~
 
 ### Materialized Views
 
@@ -46,10 +46,10 @@ and the refresh takes longer.
 
 Let's see an example:
 
-{% highlight sql %}
+~~~ sql
 CREATE MATERIALIZED VIEW logs_2015 AS
 SELECT value, year FROM logs where year = 2015;
-{% endhighlight %}
+~~~
 
 Note that in this case we don't have the `CREATE OR REPLACE` option. This
 happens because materialized views must be dropped if they already exist.
@@ -77,20 +77,20 @@ of your view. So, if we have a view that filters our records by the year of
 after the operation. In version `9.4` we have the option `WITH CHECK OPTION`
 that blocks these kind of updates.
 
-{% highlight sql %}
+~~~ sql
 CREATE OR REPLACE VIEW logs_2015 AS
 SELECT value, year FROM logs where year = 2015
 WITH CHECK OPTION;
-{% endhighlight %}
+~~~
 
 If we now try the following:
 
-{% highlight sql %}
+~~~ sql
 UPDATE logs_2015 SET year = 2016 WHERE value = 30;
 ERROR:  new row for relation "logs_2015" violates
         check constraint "logs_2015_year_check"
 DETAIL:  Failing row contains (15, 30, 2016).
-{% endhighlight %}
+~~~
 
 We can see that we get an error, because our update would put the record
 outside the scope of our view.
@@ -99,9 +99,9 @@ outside the scope of our view.
 
 It's really easy to drop a view, all you really need to do is:
 
-{% highlight sql %}
+~~~ sql
 DROP VIEW view;
-{% endhighlight %}
+~~~
 
 There are some extra options that can be found in the
 [documentation](http://www.postgresql.org/docs/9.4/static/sql-dropview.html).

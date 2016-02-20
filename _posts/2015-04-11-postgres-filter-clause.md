@@ -22,7 +22,7 @@ evaluates to true. It literally filter rows according to our query.
 
 Suppose we have two tables in our database like the ones below:
 
-{% highlight sql %}
+~~~ sql
 SELECT * FROM sports;
 
  id |   name
@@ -42,12 +42,12 @@ SELECT * FROM people;
   4 | alice |  20 |        1
   5 | jean  |  28 |        1
   6 | bob   |  30 |        4
-{% endhighlight %}
+~~~
 
 Now we want to count the number of people that likes football (`sport_id = 1`) grouped by age.
 We could do something like this using the good and old `CASE` clause:
 
-{% highlight sql %}
+~~~ sql
 SELECT age, COUNT(CASE WHEN sport_id = 1 THEN 1 ELSE NULL END) AS f
 FROM people
 GROUP BY age;
@@ -60,12 +60,12 @@ GROUP BY age;
   22 | 1
   21 | 0
 (5 rows)
-{% endhighlight %}
+~~~
 
 Nothing wrong with this approach, but with postgres `9.4` we can use `FILTER`
 and simplify things a little.
 
-{% highlight sql %}
+~~~ sql
 SELECT age, COUNT(*) FILTER(WHERE sport_id = 1) AS f
 FROM people
 GROUP BY age;
@@ -78,7 +78,7 @@ GROUP BY age;
   22 | 1
   21 | 0
 (5 rows)
-{% endhighlight %}
+~~~
 
 We are filtering rows that have `sport_id = 1` and passing it to `COUNT` without
 worrying about the ones that don't have it. It just reads better in my opinion.

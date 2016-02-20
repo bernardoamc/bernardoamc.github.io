@@ -28,13 +28,13 @@ and don't really care if it is lost.
 
 ### Example
 
-{% highlight sql %}
+~~~ sql
 CREATE UNLOGGED TABLE http_sessions (
   session_id text PRIMARY KEY,
   created_at timestamptz,
   ...
 );
-{% endhighlight %}
+~~~
 
 As we can see the only difference in syntax is the `UNLOGGED` keyword.
 

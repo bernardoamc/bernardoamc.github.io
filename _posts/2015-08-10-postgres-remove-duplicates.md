@@ -13,7 +13,7 @@ and some housekeeping is needed. Let's see some ways to do this:
 
 Suppose we have a table called orders like the following:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE orders(
   id serial PRIMARY KEY,
   item_id integer,
@@ -39,7 +39,7 @@ SELECT * FROM orders;
   5 |       2 | dba
   6 |       3 | fkl
 (6 rows)
-{% endhighlight %}
+~~~
 
 We want to remove rows that have the same `item_id` and `code`, what are our
 options? Actually, a lot!
@@ -63,7 +63,7 @@ With this covered, let's start our study:
 ### GROUP BY
 Let's start simple and avoid "fancy" things like `joins` and `window functions`.
 
-{% highlight sql %}
+~~~ sql
 DELETE
 FROM orders
 WHERE id NOT in (
@@ -71,7 +71,7 @@ WHERE id NOT in (
   FROM orders
   GROUP BY item_id, code
 );
-{% endhighlight %}
+~~~
 
 Here we group our rows using the same criteria we use to find duplicates and
 fetch the lowest id in each group. After this we delete every row that is not
@@ -81,14 +81,14 @@ We could achieve the same result with `DISTINCT ON`, let's see an example.
 
 ### DISTINCT ON
 
-{% highlight sql %}
+~~~ sql
 DELETE
 FROM orders
 WHERE id NOT IN (
   SELECT DISTINCT ON (item_id, code) id
   FROM orders
 );
-{% endhighlight %}
+~~~
 
 Here we fetch the first row from each group with the same `item_id` and
 `name` and delete the rest. It's important to mention that we are relying in the
@@ -98,7 +98,7 @@ documentation](http://www.postgresql.org/docs/9.0/static/sql-select.html#SQL-DIS
 
 ### EXISTS
 
-{% highlight sql %}
+~~~ sql
 DELETE
 FROM orders o1
 WHERE EXISTS (
@@ -108,7 +108,7 @@ WHERE EXISTS (
         o1.code = o2.code AND
         o1.id > o2.id
 );
-{% endhighlight %}
+~~~
 
 This reads as: "Delete every row from o1 that has the same item_id and code and
 an id bigger than at least one id from o2". This will ensure that only the
@@ -116,13 +116,13 @@ duplicates with the lowest id remains.
 
 ### USING
 
-{% highlight sql %}
+~~~ sql
 DELETE
 FROM orders o1 USING orders o2
 WHERE o1.item_id = o2.item_id AND
       o1.code = o2.code AND
       o1.id > o2.id;
-{% endhighlight %}
+~~~
 
 Which executes the same code in our `GROUP BY` example. We also use the same
 technique explained above to keep the lowest id from our duplicated records.
@@ -131,7 +131,7 @@ We can see another `USING` example
 
 ### PARTITION (WINDOW FUNCTION)
 
-{% highlight sql %}
+~~~ sql
 DELETE
 FROM orders
 WHERE id IN (
@@ -143,7 +143,7 @@ WHERE id IN (
   ) AS sorted
   WHERE sorted.row_number > 1
 );
-{% endhighlight %}
+~~~
 
 Here the rows were partitioned by the specified criteria to find duplicates
 and sorted by `id`, after this we create a column with the row
@@ -152,13 +152,13 @@ with row numbers greater than 1 to delete.
 
 ### Temporary tables
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE temporary_orders AS
   SELECT DISTINCT ON (item_id, code) * FROM orders;
 
 DROP TABLE orders;
 ALTER TABLE temporary_orders RENAME TO orders;
-{% endhighlight %}
+~~~
 
 This solution is fast, but you have to disable indexes and foreign key constraints
 in your table to achieve this, which is not very practical. Still, it's a

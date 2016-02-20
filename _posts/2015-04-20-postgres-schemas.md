@@ -31,7 +31,7 @@ time.
 Let's see this in action by creating a table named `categories` and querying it
 without a namespace first.
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE categories (
   id serial PRIMARY KEY,
   name varchar
@@ -46,12 +46,12 @@ id |    name
   1 | books
   2 | electronics
 (2 rows)
-{% endhighlight %}
+~~~
 
 We got the result that we expected. Let's run the same query specifying
 the default schema this time:
 
-{% highlight sql %}
+~~~ sql
 SELECT * FROM public.categories;
 
  id |    name
@@ -59,14 +59,14 @@ SELECT * FROM public.categories;
   1 | books
   2 | electronics
 (2 rows)
-{% endhighlight %}
+~~~
 
 Exactly the same result! This tell us that our table is in the `public` schema
 (namespace) and also that we can query it using the notation `namespace.table`.
 
 We can check which tables are in a schema by using the following query:
 
-{% highlight sql %}
+~~~ sql
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public';
@@ -75,11 +75,11 @@ WHERE table_schema = 'public';
 --------------
  categories
 (1 row)
-{% endhighlight %}
+~~~
 
 Or if you use the awesome `psql` interface:
 
-{% highlight sql %}
+~~~ sql
 \dt public.*
 
             List of relations
@@ -87,7 +87,7 @@ Or if you use the awesome `psql` interface:
 --------+--------------+-------+----------
  public | categories   | table | bernardo
 (1 row)
-{% endhighlight %}
+~~~
 
 ### Creating a schema
 
@@ -95,16 +95,16 @@ So far we saw that if we don't specify a schema our tables will end inside the
 `public` schema. How do we create a schema so we can avoid this? Let's see an
 example:
 
-{% highlight sql %}
+~~~ sql
 CREATE SCHEMA example;
 CREATE SCHEMA
 Time: 39.698 ms
-{% endhighlight %}
+~~~
 
 That's it, we created a schema named `example`. To make sure this is true let's
 list our available schemas in this database using the `psql` interface:
 
-{% highlight sql %}
+~~~ sql
 \dn
 
    List of schemas
@@ -113,7 +113,7 @@ list our available schemas in this database using the `psql` interface:
  example  | bernardo
  public   | bernardo
 (2 rows)
-{% endhighlight %}
+~~~
 
 We have two schemas as expected, the default one and the one we created. We can
 add objects to our schema right away.
@@ -122,7 +122,7 @@ add objects to our schema right away.
 
 We will start by creating a table with the same name as the one we already have:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE categories (
   id serial PRIMARY KEY,
   name varchar
@@ -130,13 +130,13 @@ CREATE TABLE categories (
 
 ERROR:  relation "categories" already exists
 Time: 3.112 ms
-{% endhighlight %}
+~~~
 
 What? Oh, right, we forgot to specify our schema, so postgres tried to create a
 table named `categories` in the `public` schema, but we already have a table
 with this same name. Let's try again:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE example.categories (
   id serial PRIMARY KEY,
   name varchar
@@ -146,12 +146,12 @@ CREATE TABLE
 Time: 235.251 ms
 
 INSERT INTO example.categories (name) VALUES ('toys');
-{% endhighlight %}
+~~~
 
 Nice, we created our new table inside the `example` schema and already inserted
 a row in it. Let's see our tables:
 
-{% highlight sql %}
+~~~ sql
 SELECT * FROM example.categories;
 
  id | name
@@ -166,7 +166,7 @@ SELECT * FROM public.categories;
   1 | books
   2 | electronics
 (2 rows)
-{% endhighlight %}
+~~~
 
 As we can see they are independent tables with its own data in the same database,
 this is only possible because they are in different schemas. What if we don't
@@ -179,14 +179,14 @@ schema names in a certain order and when we do some operation it will search
 for each schema in the specified order. Let's see the default value of
 this variable.
 
-{% highlight sql %}
+~~~ sql
 SHOW search_path;
 
    search_path
 -----------------
  "$user", public
 (1 row)
-{% endhighlight %}
+~~~
 
 Shouldn't the `search_path` contain only the `public` schema? And what about this
 `"$user"`? This is a postgres variable that contains the current user name, this
@@ -197,7 +197,7 @@ not found we go to the `public` schema that is created by default.
 That's exactly what was happening since we don't have a schema with the current
 user name.
 
-{% highlight sql %}
+~~~ sql
 SELECT user;
  current_user
 --------------
@@ -212,7 +212,7 @@ SELECT user;
  example  | bernardo
  public   | bernardo
 (2 rows)
-{% endhighlight %}
+~~~
 
 This is a trick that postgres employs so you don't need to change your
 `search_path` every time you want to namespace your tables. You just have to create
@@ -221,22 +221,22 @@ user will end in the correct schema.
 
 To change the `search_path` variable we just do:
 
-{% highlight sql %}
+~~~ sql
 SET search_path TO example,"$user",public;
-{% endhighlight %}
+~~~
 
 And if we query our categories table without passing a schema we hope to list
 the entries of `example.categories`, since it is the first schema that is going
 to be searched.
 
-{% highlight sql %}
+~~~ sql
 SELECT * from categories;
 
  id | name
 ----+------
   1 | toys
 (1 row)
-{% endhighlight %}
+~~~
 
 We get the content of `example.categories` as expected. Every command will be
 executed in this schema from now on, so things like queries,
@@ -245,13 +245,13 @@ schema.
 
 Suppose we now want to remove our schema, not a problem:
 
-{% highlight sql %}
+~~~ sql
 -- If our schema is empty
 DROP SCHEMA example;
 
 -- If our schema has objects
 DROP SCHEMA example CASCADE;
-{% endhighlight %}
+~~~
 
 That's basically it about schemas. Jamie Winsor has a [cool
 talk](https://www.youtube.com/watch?v=_i6n-eWiVn4&list=PLWbHc_FXPo2h0sJW6X2RZDtT1ndw6KKpQ&index=34)

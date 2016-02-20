@@ -18,7 +18,7 @@ postgres, but should work in any other relational database.
 
 Let's create and populate our table:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE games (
   game_id serial PRIMARY KEY,
   name VARCHAR,
@@ -44,26 +44,26 @@ SELECT * FROM games;
        4 | Soul Locus         |    30 | 2015-04-30  | Fat Loot Games
        5 | Subterrain         |    40 | 2015-04-30  | Pixellore
 (5 rows)
-{% endhighlight %}
+~~~
 
 We want something like:
 
-{% highlight sql %}
+~~~ sql
 SELECT released_at, name, publisher, MAX(price) as most_expensive
 FROM games
 GROUP BY released_at;
-{% endhighlight %}
+~~~
 
 This means that we want to group games by release date and after this get
 the most expensive one and its name  and publisher for each date.
 What we get instead is:
 
-{% highlight sql %}
+~~~ sql
 ERROR:  column "games.name" must appear in the GROUP BY
 clause or be used in an aggregate function
 LINE 1: SELECT released_at, name, publisher, MAX(price) ...
                             ^
-{% endhighlight %}
+~~~
 
 ### Why is that?
 
@@ -73,12 +73,12 @@ and can't infer which row to choose from if we want some column
 other than the grouped one. So, in the case of the date `2015-05-01` it has to
 choose from the pool:
 
-{% highlight sql %}
+~~~ sql
  game_id |        name        | price | released_at |   publisher
 --------+--------------------+-------+-------------+----------------
       1 | Metal Slug Defense |    30 | 2015-05-01  | SNK Playmore
       2 | Project Druid      |    20 | 2015-05-01  | shortcircuit
-{% endhighlight %}
+~~~
 
 It can't know if we mean `Metal Slug Defense` or `Project Druid` for the
 game name and `SNK Playmore` or `shortcircuit` for publisher.
@@ -97,13 +97,13 @@ first place. Let's make this clear:
 But why not? It's obvious! In this case it is, but what about the date
 `2015-04-30`? Our pool for this date is:
 
-{% highlight sql %}
+~~~ sql
  game_id |        name        | price | released_at |   publisher
 --------+--------------------+-------+-------------+----------------
       3 | Chroma Squad       |    40 | 2015-04-30  | Behold Studios
       4 | Soul Locus         |    30 | 2015-04-30  | Fat Loot Games
       5 | Subterrain         |    40 | 2015-04-30  | Pixellore
-{% endhighlight %}
+~~~
 
 Here the higher price is `40`, but we have two games with this price, `Chroma
 Squad` and `Subterrain`, which one should we choose from to set the name and
@@ -116,7 +116,7 @@ Ok... Ok... It's not so simple, what can we do?
 
 **1)** Create a query that contains the fields that we want in our answer:
 
-{% highlight sql %}
+~~~ sql
 SELECT g1.name, g1.publisher, g1.price, g1.released_at
 FROM games AS g1;
 
@@ -128,11 +128,11 @@ FROM games AS g1;
  Soul Locus         | Fat Loot Games |    30 | 2015-04-30
  Subterrain         | Pixellore      |    40 | 2015-04-30
 (5 rows)
-{% endhighlight %}
+~~~
 
 **2)** Create a query that calculates the higher price per release date:
 
-{% highlight sql %}
+~~~ sql
 SELECT released_at, MAX(price) as price
 FROM games
 GROUP BY released_at;
@@ -142,11 +142,11 @@ GROUP BY released_at;
  2015-04-30  |    40
  2015-05-01  |    30
 (2 rows)
-{% endhighlight %}
+~~~
 
 **3)** Joins both queries making **2** a temporary table:
 
-{% highlight sql %}
+~~~ sql
 SELECT g1.name, g1.publisher, g1.price, g1.released_at
 FROM games AS g1
 INNER JOIN (
@@ -162,7 +162,7 @@ ON g2.released_at = g1.released_at AND g2.price = g1.price;
  Chroma Squad       | Behold Studios |    40 | 2015-04-30
  Subterrain         | Pixellore      |    40 | 2015-04-30
 (3 rows)
-{% endhighlight %}
+~~~
 
 We just found rows in table **g1** that have the criteria specified by the rows
 in table **g2**. With this we are guaranteed to find the right answer, even if
@@ -173,7 +173,7 @@ there is more than one game with the same price in the same date.
 We can use a `LEFT OUTER JOIN` to solve this problem, but it is a bit tricky.
 Let's see part of the query and try to understand it:
 
-{% highlight sql %}
+~~~ sql
 SELECT g1.name, g1.publisher, g1.price, g2.price, g1.released_at
 FROM games AS g1
 LEFT OUTER JOIN games AS g2
@@ -188,7 +188,7 @@ ON g1.released_at = g2.released_at AND g1.price < g2.price;
  Soul Locus         | Fat Loot Games |    30 |     40 | 2015-04-30
  Subterrain         | Pixellore      |    40 | (null) | 2015-04-30
 (6 rows)
-{% endhighlight %}
+~~~
 
 We are fetching rows from table `g1` that have the same date as rows
 in table `g2` and that have a lower price. Since the rows in `g1` with
@@ -198,7 +198,7 @@ will be `NULL`.
 We can see that the rows with a `NULL` value for `g2.price` is the rows that
 we want, so we just need to use this filter to obtain the expected rows:
 
-{% highlight sql %}
+~~~ sql
 SELECT g1.name, g1.publisher, g1.price, g2.price, g1.released_at
 FROM games AS g1
 LEFT OUTER JOIN games AS g2
@@ -211,7 +211,7 @@ WHERE g2.price IS NULL;
  Chroma Squad       | Behold Studios |    40 | (null) | 2015-04-30
  Subterrain         | Pixellore      |    40 | (null) | 2015-04-30
 (3 rows)
-{% endhighlight %}
+~~~
 
 And that's it!
 

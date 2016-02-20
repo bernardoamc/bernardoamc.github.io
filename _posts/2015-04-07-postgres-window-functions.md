@@ -27,7 +27,7 @@ these functions
 
 Let's first do the setup for the example:
 
-{% highlight sql %}
+~~~ sql
 CREATE TABLE users (
   id serial PRIMARY KEY,
   name varchar(100),
@@ -50,11 +50,11 @@ INSERT INTO users (id, name, age, salary) VALUES
   4 | d    |  25 |   3500
   5 | e    |  28 |   5000
 (5 rows)
-{% endhighlight %}
+~~~
 
 Finally, let's use window functions to calculate the average salary per age:
 
-{% highlight sql %}
+~~~ sql
 SELECT name, AVG(salary) OVER (PARTITION BY age) as average_salary
 FROM users;
 
@@ -66,7 +66,7 @@ FROM users;
  d    | 3000.0000000000000000
  e    | 5000.0000000000000000
 (5 rows)
-{% endhighlight %}
+~~~
 
 So, what happened?
 
@@ -79,7 +79,7 @@ average salary per age.
 Without the `PARTITION BY` our *average_salary* would be the same for each row as
 we can see below:
 
-{% highlight sql %}
+~~~ sql
 SELECT name, AVG(salary) OVER () as average_salary
 FROM users;
 
@@ -91,7 +91,7 @@ FROM users;
  d    | 2700.0000000000000000
  e    | 2700.0000000000000000
 (5 rows)
-{% endhighlight %}
+~~~
 
 We can also use `ORDER BY` inside our `OVER()` clause, but it is something to
 keep an eye on. I will quote the official documentation since it is described
@@ -103,7 +103,7 @@ that are equal to the current row according to the ORDER BY clause.*
 
 So it's not really a surprise that our next example works this way:
 
-{% highlight sql %}
+~~~ sql
 SELECT name, age, salary, SUM(salary) OVER (ORDER BY age) as sum
 FROM users;
 
@@ -115,7 +115,7 @@ FROM users;
  d    |  25 |   3500 |  8500
  e    |  28 |   5000 | 13500
 (5 rows)
-{% endhighlight %}
+~~~
 
 That's it for now, hope the window functions concept is a bit clearer now.
 

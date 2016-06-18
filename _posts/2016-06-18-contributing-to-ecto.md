@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      Contributing to Ecto
-date:       2016-06-19 13:00:00
+date:       2016-06-18 13:00:00
 summary:    In this post I will present the workflow I utilized to contribute
             to an Elixir project called Ecto.
 categories: elixir
